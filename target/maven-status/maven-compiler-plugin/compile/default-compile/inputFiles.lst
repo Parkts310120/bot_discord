@@ -2,6 +2,8 @@
 /workspaces/bot_discord/src/main/java/br/com/endurancebot/Main.java
 /workspaces/bot_discord/src/main/java/br/com/endurancebot/model/Availability.java
 /workspaces/bot_discord/src/main/java/br/com/endurancebot/model/Race.java
+/workspaces/bot_discord/src/main/java/br/com/endurancebot/model/TimeZoneOption.java
 /workspaces/bot_discord/src/main/java/br/com/endurancebot/repository/AvailabilityRepository.java
 /workspaces/bot_discord/src/main/java/br/com/endurancebot/service/AvailabilityService.java
+/workspaces/bot_discord/src/main/java/br/com/endurancebot/service/TimeZoneCatalogService.java
 /workspaces/bot_discord/src/main/java/br/com/endurancebot/service/TimeZoneService.java
