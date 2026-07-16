@@ -10,6 +10,7 @@ import java.time.ZonedDateTime;
 public class ConversorFusoService {
 
     public Disponibilidade criarDisponibilidade(
+            String corridaId,
             String piloto,
             LocalDate data,
             LocalTime horarioInicial,
@@ -29,6 +30,7 @@ public class ConversorFusoService {
         }
 
         return new Disponibilidade(
+                corridaId,
                 piloto,
                 inicioLocal.toInstant(),
                 fimLocal.toInstant(),

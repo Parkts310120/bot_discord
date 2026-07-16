@@ -1,10 +1,12 @@
 package br.com.endurancebot;
 
+import br.com.endurancebot.model.Corrida;
 import br.com.endurancebot.model.Disponibilidade;
 import br.com.endurancebot.repository.DisponibilidadeRepository;
 import br.com.endurancebot.service.ConversorFusoService;
 import br.com.endurancebot.service.DisponibilidadeService;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -12,6 +14,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Scanner;
+import java.util.UUID;
 
 public class Main {
 
@@ -39,76 +42,111 @@ public class Main {
         DateTimeFormatter formatoSaida =
                 DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm z");
 
-        System.out.println("=== Endurance Stint Bot ===");
+        System.out.println("=== Cadastro da corrida pelo admin ===");
+
+        System.out.print("Nome da corrida: ");
+        String nomeCorrida = scanner.nextLine();
+
+        System.out.print("Data da corrida (dd/MM/yyyy): ");
+        LocalDate dataCorrida = LocalDate.parse(
+                scanner.nextLine(),
+                formatoData
+        );
+
+        System.out.print("Horário de início da corrida (HH:mm): ");
+        LocalTime horarioCorrida = LocalTime.parse(
+                scanner.nextLine(),
+                formatoHorario
+        );
+
+        System.out.print("Duração da corrida em horas: ");
+        long duracaoHoras = Long.parseLong(scanner.nextLine());
+
+        System.out.print(
+                "Fuso oficial da corrida (exemplo: Europe/London): "
+        );
+        String fusoOficial = scanner.nextLine();
+
+        ZonedDateTime inicioCorridaLocal =
+                ZonedDateTime.of(
+                        dataCorrida,
+                        horarioCorrida,
+                        ZoneId.of(fusoOficial)
+                );
+
+        Corrida corrida = new Corrida(
+                UUID.randomUUID().toString(),
+                nomeCorrida,
+                inicioCorridaLocal.toInstant(),
+                inicioCorridaLocal.plusHours(duracaoHoras).toInstant(),
+                fusoOficial
+        );
+
+        System.out.println();
+        System.out.println("Corrida criada com sucesso.");
+        System.out.println("Nome: " + corrida.getNome());
+        System.out.println(
+                "Início oficial: "
+                        + corrida.getInicio()
+                        .atZone(ZoneId.of(corrida.getFusoOficial()))
+                        .format(formatoSaida)
+        );
 
         boolean continuar = true;
 
         while (continuar) {
             try {
                 System.out.println();
+                System.out.println("=== Disponibilidade do piloto ===");
+
                 System.out.print("Nome do piloto: ");
                 String piloto = scanner.nextLine();
 
-                System.out.print("Data da corrida (dd/MM/yyyy): ");
-                LocalDate data = LocalDate.parse(
-                        scanner.nextLine(),
-                        formatoData
-                );
-
-                System.out.print("Horário inicial (HH:mm): ");
+                System.out.print("Disponível a partir de (HH:mm): ");
                 LocalTime horarioInicial = LocalTime.parse(
                         scanner.nextLine(),
                         formatoHorario
                 );
 
-                System.out.print("Horário final (HH:mm): ");
+                System.out.print("Disponível até (HH:mm): ");
                 LocalTime horarioFinal = LocalTime.parse(
                         scanner.nextLine(),
                         formatoHorario
                 );
 
                 System.out.print(
-                        "Fuso horário (exemplo: America/Sao_Paulo): "
+                        "Fuso do piloto (exemplo: America/Sao_Paulo): "
                 );
                 String fuso = scanner.nextLine();
 
-                Disponibilidade disponibilidade =
-                        disponibilidadeService.registrarDisponibilidade(
-                                piloto,
-                                data,
-                                horarioInicial,
-                                horarioFinal,
-                                fuso
-                        );
-
-                System.out.println();
-                System.out.println("Disponibilidade registrada para "
-                        + disponibilidade.getPiloto());
-
-                System.out.print(
-                        "Deseja cadastrar outro piloto? (s/n): "
+                disponibilidadeService.registrarDisponibilidade(
+                        corrida,
+                        piloto,
+                        horarioInicial,
+                        horarioFinal,
+                        fuso
                 );
 
-                String resposta = scanner.nextLine();
+                System.out.println("Disponibilidade registrada.");
 
-                continuar = resposta.equalsIgnoreCase("s");
+                System.out.print(
+                        "Cadastrar outro piloto? (s/n): "
+                );
+
+                continuar = scanner.nextLine()
+                        .equalsIgnoreCase("s");
 
             } catch (Exception exception) {
-                System.out.println();
                 System.out.println(
-                        "Não foi possível registrar a disponibilidade."
-                );
-                System.out.println(
-                        "Motivo: " + exception.getMessage()
+                        "Erro: " + exception.getMessage()
                 );
 
                 System.out.print(
-                        "Deseja tentar novamente? (s/n): "
+                        "Tentar novamente? (s/n): "
                 );
 
-                String resposta = scanner.nextLine();
-
-                continuar = resposta.equalsIgnoreCase("s");
+                continuar = scanner.nextLine()
+                        .equalsIgnoreCase("s");
             }
         }
 
@@ -116,35 +154,38 @@ public class Main {
                 disponibilidadeService.listarDisponibilidades();
 
         System.out.println();
-        System.out.println("=== Disponibilidades cadastradas ===");
+        System.out.println("=== Resumo para os admins ===");
 
-        if (disponibilidades.isEmpty()) {
-            System.out.println("Nenhuma disponibilidade cadastrada.");
-        } else {
-            for (Disponibilidade disponibilidade : disponibilidades) {
-                ZonedDateTime inicioUtc =
-                        disponibilidade.getInicio()
-                                .atZone(ZoneId.of("UTC"));
+        for (Disponibilidade disponibilidade : disponibilidades) {
+            ZonedDateTime inicioUtc =
+                    disponibilidade.getInicio()
+                            .atZone(ZoneId.of("UTC"));
 
-                ZonedDateTime fimUtc =
-                        disponibilidade.getFim()
-                                .atZone(ZoneId.of("UTC"));
+            ZonedDateTime fimUtc =
+                    disponibilidade.getFim()
+                            .atZone(ZoneId.of("UTC"));
 
-                System.out.println();
-                System.out.println(
-                        "Piloto: " + disponibilidade.getPiloto()
-                );
-                System.out.println(
-                        "Fuso original: "
-                                + disponibilidade.getFusoOriginal()
-                );
-                System.out.println(
-                        "Horário UTC: "
-                                + inicioUtc.format(formatoSaida)
-                                + " até "
-                                + fimUtc.format(formatoSaida)
-                );
-            }
+            Duration duracao =
+                    Duration.between(
+                            disponibilidade.getInicio(),
+                            disponibilidade.getFim()
+                    );
+
+            System.out.println();
+            System.out.println(
+                    "Piloto: " + disponibilidade.getPiloto()
+            );
+            System.out.println(
+                    "Disponível em UTC: "
+                            + inicioUtc.format(formatoSaida)
+                            + " até "
+                            + fimUtc.format(formatoSaida)
+            );
+            System.out.println(
+                    "Total disponível: "
+                            + duracao.toHours()
+                            + " horas"
+            );
         }
 
         scanner.close();

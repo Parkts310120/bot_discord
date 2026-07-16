@@ -1,10 +1,12 @@
 package br.com.endurancebot.service;
 
+import br.com.endurancebot.model.Corrida;
 import br.com.endurancebot.model.Disponibilidade;
 import br.com.endurancebot.repository.DisponibilidadeRepository;
 
-import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 public class DisponibilidadeService {
@@ -21,16 +23,20 @@ public class DisponibilidadeService {
     }
 
     public Disponibilidade registrarDisponibilidade(
+            Corrida corrida,
             String piloto,
-            LocalDate data,
             LocalTime horarioInicial,
             LocalTime horarioFinal,
             String fuso
     ) {
+        ZonedDateTime inicioCorridaNoFusoDoPiloto =
+                corrida.getInicio().atZone(ZoneId.of(fuso));
+
         Disponibilidade disponibilidade =
                 conversorFusoService.criarDisponibilidade(
+                        corrida.getId(),
                         piloto,
-                        data,
+                        inicioCorridaNoFusoDoPiloto.toLocalDate(),
                         horarioInicial,
                         horarioFinal,
                         fuso
@@ -43,9 +49,5 @@ public class DisponibilidadeService {
 
     public List<Disponibilidade> listarDisponibilidades() {
         return disponibilidadeRepository.listarTodos();
-    }
-
-    public Disponibilidade buscarPorPiloto(String piloto) {
-        return disponibilidadeRepository.buscarPorPiloto(piloto);
     }
 }
