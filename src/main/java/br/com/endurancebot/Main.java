@@ -1,5 +1,8 @@
 package br.com.endurancebot;
 
+import br.com.endurancebot.model.Disponibilidade;
+import br.com.endurancebot.service.ConversorFusoService;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -11,69 +14,73 @@ public class Main {
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
+        ConversorFusoService conversor = new ConversorFusoService();
+
+        DateTimeFormatter formatoData =
+                DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+        DateTimeFormatter formatoHorario =
+                DateTimeFormatter.ofPattern("HH:mm");
+
+        DateTimeFormatter formatoSaida =
+                DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm z");
 
         System.out.println("=== Endurance Stint Bot ===");
 
         System.out.print("Nome do piloto: ");
-        String nomePiloto = scanner.nextLine();
+        String piloto = scanner.nextLine();
 
         System.out.print("Data da corrida (dd/MM/yyyy): ");
-        String dataInformada = scanner.nextLine();
+        LocalDate data = LocalDate.parse(
+                scanner.nextLine(),
+                formatoData
+        );
 
         System.out.print("Horário inicial (HH:mm): ");
-        String horarioInicialInformado = scanner.nextLine();
+        LocalTime horarioInicial = LocalTime.parse(
+                scanner.nextLine(),
+                formatoHorario
+        );
 
         System.out.print("Horário final (HH:mm): ");
-        String horarioFinalInformado = scanner.nextLine();
+        LocalTime horarioFinal = LocalTime.parse(
+                scanner.nextLine(),
+                formatoHorario
+        );
 
-        System.out.print("Fuso horário (exemplo: America/Sao_Paulo): ");
-        String fusoInformado = scanner.nextLine();
+        System.out.print(
+                "Fuso horário (exemplo: America/Sao_Paulo): "
+        );
+        String fuso = scanner.nextLine();
 
         try {
-            DateTimeFormatter formatoData =
-                    DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
-            DateTimeFormatter formatoHorario =
-                    DateTimeFormatter.ofPattern("HH:mm");
-
-            LocalDate data =
-                    LocalDate.parse(dataInformada, formatoData);
-
-            LocalTime horarioInicial =
-                    LocalTime.parse(horarioInicialInformado, formatoHorario);
-
-            LocalTime horarioFinal =
-                    LocalTime.parse(horarioFinalInformado, formatoHorario);
-
-            ZoneId fusoPiloto = ZoneId.of(fusoInformado);
-
-            ZonedDateTime inicioPiloto =
-                    ZonedDateTime.of(data, horarioInicial, fusoPiloto);
-
-            ZonedDateTime fimPiloto =
-                    ZonedDateTime.of(data, horarioFinal, fusoPiloto);
-
-            if (!horarioFinal.isAfter(horarioInicial)) {
-                fimPiloto = fimPiloto.plusDays(1);
-            }
+            Disponibilidade disponibilidade =
+                    conversor.criarDisponibilidade(
+                            piloto,
+                            data,
+                            horarioInicial,
+                            horarioFinal,
+                            fuso
+                    );
 
             ZonedDateTime inicioUtc =
-                    inicioPiloto.withZoneSameInstant(ZoneId.of("UTC"));
+                    disponibilidade.getInicio()
+                            .atZone(ZoneId.of("UTC"));
 
             ZonedDateTime fimUtc =
-                    fimPiloto.withZoneSameInstant(ZoneId.of("UTC"));
-
-            DateTimeFormatter formatoSaida =
-                    DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm z");
+                    disponibilidade.getFim()
+                            .atZone(ZoneId.of("UTC"));
 
             System.out.println();
-            System.out.println("=== Disponibilidade registrada ===");
-            System.out.println("Piloto: " + nomePiloto);
             System.out.println(
-                    "Horário original: "
-                            + inicioPiloto.format(formatoSaida)
-                            + " até "
-                            + fimPiloto.format(formatoSaida)
+                    "=== Disponibilidade registrada ==="
+            );
+            System.out.println(
+                    "Piloto: " + disponibilidade.getPiloto()
+            );
+            System.out.println(
+                    "Fuso original: "
+                            + disponibilidade.getFusoOriginal()
             );
             System.out.println(
                     "Horário UTC: "
@@ -84,8 +91,12 @@ public class Main {
 
         } catch (Exception exception) {
             System.out.println();
-            System.out.println("Não foi possível registrar a disponibilidade.");
-            System.out.println("Motivo: " + exception.getMessage());
+            System.out.println(
+                    "Não foi possível registrar a disponibilidade."
+            );
+            System.out.println(
+                    "Motivo: " + exception.getMessage()
+            );
         }
 
         scanner.close();
