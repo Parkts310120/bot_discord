@@ -2,3 +2,4 @@ br/com/endurancebot/Main.class
 br/com/endurancebot/repository/DisponibilidadeRepository.class
 br/com/endurancebot/service/ConversorFusoService.class
 br/com/endurancebot/model/Disponibilidade.class
+br/com/endurancebot/service/DisponibilidadeService.class
