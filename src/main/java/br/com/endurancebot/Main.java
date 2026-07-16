@@ -1,44 +1,33 @@
 package br.com.endurancebot;
 
-import br.com.endurancebot.model.TimeZoneOption;
-import br.com.endurancebot.service.TimeZoneCatalogService;
-
-import java.util.List;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.JDABuilder;
 
 public class Main {
 
     public static void main(String[] args) {
-        System.out.println("Starting Endurance Bot...");
-        System.out.println();
+        String token = System.getenv("DISCORD_TOKEN");
 
-        TimeZoneCatalogService timeZoneCatalogService =
-                new TimeZoneCatalogService();
-
-        List<TimeZoneOption> timeZones =
-                timeZoneCatalogService.findAll();
-
-        System.out.println("Available time zones:");
-
-        String currentRegion = "";
-
-        for (TimeZoneOption timeZone : timeZones) {
-            if (!timeZone.getRegion().equals(currentRegion)) {
-                currentRegion = timeZone.getRegion();
-
-                System.out.println();
-                System.out.println("=== " + currentRegion + " ===");
-            }
-
-            System.out.println(
-                    timeZone.getLabel()
-                            + " -> "
-                            + timeZone.getZoneId()
-            );
+        if (token == null || token.isBlank()) {
+            System.out.println("Endurance Bot core is ready.");
+            System.out.println("DISCORD_TOKEN is not configured.");
+            System.out.println("The bot will not connect to Discord.");
+            return;
         }
 
-        System.out.println();
-        System.out.println(
-                "Endurance Bot core started successfully."
-        );
+        try {
+            JDA jda = JDABuilder
+                    .createDefault(token)
+                    .addEventListeners(new BotListener())
+                    .build();
+
+            jda.awaitReady();
+
+            System.out.println("Endurance Bot connected successfully.");
+
+        } catch (Exception exception) {
+            System.out.println("Could not start the bot.");
+            System.out.println("Reason: " + exception.getMessage());
+        }
     }
 }
