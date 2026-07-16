@@ -2,6 +2,7 @@ package br.com.endurancebot;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 public class Main {
 
@@ -23,11 +24,32 @@ public class Main {
 
             jda.awaitReady();
 
-            System.out.println("Endurance Bot connected successfully.");
+            jda.updateCommands()
+                    .addCommands(
+                            Commands.slash(
+                                    "ping",
+                                    "Checks whether the bot is online"
+                            )
+                    )
+                    .queue(
+                            success -> System.out.println(
+                                    "[INFO] Slash commands registered."
+                            ),
+                            error -> System.out.println(
+                                    "[ERROR] Could not register commands: "
+                                            + error.getMessage()
+                            )
+                    );
+
+            System.out.println(
+                    "Endurance Bot connected successfully."
+            );
 
         } catch (Exception exception) {
             System.out.println("Could not start the bot.");
-            System.out.println("Reason: " + exception.getMessage());
+            System.out.println(
+                    "Reason: " + exception.getMessage()
+            );
         }
     }
 }
