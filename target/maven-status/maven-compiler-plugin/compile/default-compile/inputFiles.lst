@@ -1,7 +1,7 @@
 /workspaces/bot_discord/src/main/java/br/com/endurancebot/BotListener.java
 /workspaces/bot_discord/src/main/java/br/com/endurancebot/Main.java
-/workspaces/bot_discord/src/main/java/br/com/endurancebot/model/Corrida.java
-/workspaces/bot_discord/src/main/java/br/com/endurancebot/model/Disponibilidade.java
-/workspaces/bot_discord/src/main/java/br/com/endurancebot/repository/DisponibilidadeRepository.java
-/workspaces/bot_discord/src/main/java/br/com/endurancebot/service/ConversorFusoService.java
-/workspaces/bot_discord/src/main/java/br/com/endurancebot/service/DisponibilidadeService.java
+/workspaces/bot_discord/src/main/java/br/com/endurancebot/model/Availability.java
+/workspaces/bot_discord/src/main/java/br/com/endurancebot/model/Race.java
+/workspaces/bot_discord/src/main/java/br/com/endurancebot/repository/AvailabilityRepository.java
+/workspaces/bot_discord/src/main/java/br/com/endurancebot/service/AvailabilityService.java
+/workspaces/bot_discord/src/main/java/br/com/endurancebot/service/TimeZoneService.java

@@ -1,10 +1,10 @@
 package br.com.endurancebot;
 
-import br.com.endurancebot.model.Corrida;
-import br.com.endurancebot.model.Disponibilidade;
-import br.com.endurancebot.repository.DisponibilidadeRepository;
-import br.com.endurancebot.service.ConversorFusoService;
-import br.com.endurancebot.service.DisponibilidadeService;
+import br.com.endurancebot.model.Availability;
+import br.com.endurancebot.model.Race;
+import br.com.endurancebot.repository.AvailabilityRepository;
+import br.com.endurancebot.service.AvailabilityService;
+import br.com.endurancebot.service.TimeZoneService;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -21,170 +21,208 @@ public class Main {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
 
-        ConversorFusoService conversorFusoService =
-                new ConversorFusoService();
+        TimeZoneService timeZoneService =
+                new TimeZoneService();
 
-        DisponibilidadeRepository disponibilidadeRepository =
-                new DisponibilidadeRepository();
+        AvailabilityRepository availabilityRepository =
+                new AvailabilityRepository();
 
-        DisponibilidadeService disponibilidadeService =
-                new DisponibilidadeService(
-                        conversorFusoService,
-                        disponibilidadeRepository
+        AvailabilityService availabilityService =
+                new AvailabilityService(
+                        timeZoneService,
+                        availabilityRepository
                 );
 
-        DateTimeFormatter formatoData =
+        DateTimeFormatter dateFormat =
                 DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-        DateTimeFormatter formatoHorario =
+        DateTimeFormatter timeFormat =
                 DateTimeFormatter.ofPattern("HH:mm");
 
-        DateTimeFormatter formatoSaida =
+        DateTimeFormatter outputFormat =
                 DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm z");
 
-        System.out.println("=== Cadastro da corrida pelo admin ===");
+        System.out.println("=== Admin Race Setup ===");
 
-        System.out.print("Nome da corrida: ");
-        String nomeCorrida = scanner.nextLine();
+        System.out.print("Race name: ");
+        String raceName = scanner.nextLine();
 
-        System.out.print("Data da corrida (dd/MM/yyyy): ");
-        LocalDate dataCorrida = LocalDate.parse(
+        System.out.print("Race date (dd/MM/yyyy): ");
+        LocalDate raceDate = LocalDate.parse(
                 scanner.nextLine(),
-                formatoData
+                dateFormat
         );
 
-        System.out.print("Horário de início da corrida (HH:mm): ");
-        LocalTime horarioCorrida = LocalTime.parse(
+        System.out.print("Race start time (HH:mm): ");
+        LocalTime raceStartTime = LocalTime.parse(
                 scanner.nextLine(),
-                formatoHorario
+                timeFormat
         );
 
-        System.out.print("Duração da corrida em horas: ");
-        long duracaoHoras = Long.parseLong(scanner.nextLine());
+        System.out.print("Race duration in hours: ");
+        long durationHours =
+                Long.parseLong(scanner.nextLine());
 
         System.out.print(
-                "Fuso oficial da corrida (exemplo: Europe/London): "
+                "Official time zone, for example Europe/London: "
         );
-        String fusoOficial = scanner.nextLine();
+        String officialTimeZone = scanner.nextLine();
 
-        ZonedDateTime inicioCorridaLocal =
+        ZoneId raceZone = ZoneId.of(officialTimeZone);
+
+        ZonedDateTime localRaceStart =
                 ZonedDateTime.of(
-                        dataCorrida,
-                        horarioCorrida,
-                        ZoneId.of(fusoOficial)
+                        raceDate,
+                        raceStartTime,
+                        raceZone
                 );
 
-        Corrida corrida = new Corrida(
+        Race race = new Race(
                 UUID.randomUUID().toString(),
-                nomeCorrida,
-                inicioCorridaLocal.toInstant(),
-                inicioCorridaLocal.plusHours(duracaoHoras).toInstant(),
-                fusoOficial
+                raceName,
+                localRaceStart.toInstant(),
+                localRaceStart
+                        .plusHours(durationHours)
+                        .toInstant(),
+                officialTimeZone
         );
 
         System.out.println();
-        System.out.println("Corrida criada com sucesso.");
-        System.out.println("Nome: " + corrida.getNome());
+        System.out.println("Race created successfully.");
+        System.out.println("Race: " + race.getName());
         System.out.println(
-                "Início oficial: "
-                        + corrida.getInicio()
-                        .atZone(ZoneId.of(corrida.getFusoOficial()))
-                        .format(formatoSaida)
+                "Official start: "
+                        + race.getStart()
+                        .atZone(raceZone)
+                        .format(outputFormat)
+        );
+        System.out.println(
+                "Official end: "
+                        + race.getEnd()
+                        .atZone(raceZone)
+                        .format(outputFormat)
         );
 
-        boolean continuar = true;
+        boolean continueRegistration = true;
 
-        while (continuar) {
+        while (continueRegistration) {
             try {
                 System.out.println();
-                System.out.println("=== Disponibilidade do piloto ===");
+                System.out.println("=== Driver Availability ===");
 
-                System.out.print("Nome do piloto: ");
-                String piloto = scanner.nextLine();
+                System.out.print("Driver name: ");
+                String driverName = scanner.nextLine();
 
-                System.out.print("Disponível a partir de (HH:mm): ");
-                LocalTime horarioInicial = LocalTime.parse(
+                System.out.print("Available from (HH:mm): ");
+                LocalTime availableFrom = LocalTime.parse(
                         scanner.nextLine(),
-                        formatoHorario
+                        timeFormat
                 );
 
-                System.out.print("Disponível até (HH:mm): ");
-                LocalTime horarioFinal = LocalTime.parse(
+                System.out.print("Available until (HH:mm): ");
+                LocalTime availableUntil = LocalTime.parse(
                         scanner.nextLine(),
-                        formatoHorario
+                        timeFormat
                 );
 
                 System.out.print(
-                        "Fuso do piloto (exemplo: America/Sao_Paulo): "
+                        "Driver time zone, for example America/Sao_Paulo: "
                 );
-                String fuso = scanner.nextLine();
+                String driverTimeZone = scanner.nextLine();
 
-                disponibilidadeService.registrarDisponibilidade(
-                        corrida,
-                        piloto,
-                        horarioInicial,
-                        horarioFinal,
-                        fuso
+                availabilityService.registerAvailability(
+                        race,
+                        driverName,
+                        availableFrom,
+                        availableUntil,
+                        driverTimeZone
                 );
 
-                System.out.println("Disponibilidade registrada.");
+                System.out.println(
+                        "Availability registered successfully."
+                );
 
                 System.out.print(
-                        "Cadastrar outro piloto? (s/n): "
+                        "Register another driver? (y/n): "
                 );
 
-                continuar = scanner.nextLine()
-                        .equalsIgnoreCase("s");
+                continueRegistration =
+                        scanner.nextLine().equalsIgnoreCase("y");
 
             } catch (Exception exception) {
                 System.out.println(
-                        "Erro: " + exception.getMessage()
+                        "Error: " + exception.getMessage()
                 );
 
                 System.out.print(
-                        "Tentar novamente? (s/n): "
+                        "Try again? (y/n): "
                 );
 
-                continuar = scanner.nextLine()
-                        .equalsIgnoreCase("s");
+                continueRegistration =
+                        scanner.nextLine().equalsIgnoreCase("y");
             }
         }
 
-        List<Disponibilidade> disponibilidades =
-                disponibilidadeService.listarDisponibilidades();
+        List<Availability> availabilities =
+                availabilityService.listByRace(race.getId());
 
         System.out.println();
-        System.out.println("=== Resumo para os admins ===");
+        System.out.println("=== Admin Availability Summary ===");
 
-        for (Disponibilidade disponibilidade : disponibilidades) {
-            ZonedDateTime inicioUtc =
-                    disponibilidade.getInicio()
+        if (availabilities.isEmpty()) {
+            System.out.println(
+                    "No driver availability was registered."
+            );
+        }
+
+        for (Availability availability : availabilities) {
+            ZonedDateTime startUtc =
+                    availability.getStart()
                             .atZone(ZoneId.of("UTC"));
 
-            ZonedDateTime fimUtc =
-                    disponibilidade.getFim()
+            ZonedDateTime endUtc =
+                    availability.getEnd()
                             .atZone(ZoneId.of("UTC"));
 
-            Duration duracao =
+            ZonedDateTime startOfficial =
+                    availability.getStart()
+                            .atZone(raceZone);
+
+            ZonedDateTime endOfficial =
+                    availability.getEnd()
+                            .atZone(raceZone);
+
+            Duration duration =
                     Duration.between(
-                            disponibilidade.getInicio(),
-                            disponibilidade.getFim()
+                            availability.getStart(),
+                            availability.getEnd()
                     );
 
             System.out.println();
             System.out.println(
-                    "Piloto: " + disponibilidade.getPiloto()
+                    "Driver: "
+                            + availability.getDriverName()
             );
             System.out.println(
-                    "Disponível em UTC: "
-                            + inicioUtc.format(formatoSaida)
-                            + " até "
-                            + fimUtc.format(formatoSaida)
+                    "Original time zone: "
+                            + availability.getOriginalTimeZone()
             );
             System.out.println(
-                    "Total disponível: "
-                            + duracao.toHours()
-                            + " horas"
+                    "Availability in race time zone: "
+                            + startOfficial.format(outputFormat)
+                            + " to "
+                            + endOfficial.format(outputFormat)
+            );
+            System.out.println(
+                    "Availability in UTC: "
+                            + startUtc.format(outputFormat)
+                            + " to "
+                            + endUtc.format(outputFormat)
+            );
+            System.out.println(
+                    "Available duration: "
+                            + duration.toHours()
+                            + " hours"
             );
         }
 

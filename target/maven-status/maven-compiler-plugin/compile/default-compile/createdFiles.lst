@@ -1,6 +1,6 @@
 br/com/endurancebot/Main.class
-br/com/endurancebot/repository/DisponibilidadeRepository.class
-br/com/endurancebot/service/ConversorFusoService.class
-br/com/endurancebot/model/Disponibilidade.class
-br/com/endurancebot/model/Corrida.class
-br/com/endurancebot/service/DisponibilidadeService.class
+br/com/endurancebot/service/TimeZoneService.class
+br/com/endurancebot/model/Race.class
+br/com/endurancebot/service/AvailabilityService.class
+br/com/endurancebot/repository/AvailabilityRepository.class
+br/com/endurancebot/model/Availability.class
