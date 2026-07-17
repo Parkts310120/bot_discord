@@ -2,6 +2,8 @@ package br.com.endurancebot;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 public class Main {
@@ -10,15 +12,13 @@ public class Main {
         String token = System.getenv("DISCORD_TOKEN");
 
         if (token == null || token.isBlank()) {
-            System.out.println("Endurance Bot core is ready.");
             System.out.println("DISCORD_TOKEN is not configured.");
-            System.out.println("The bot will not connect to Discord.");
             return;
         }
 
         try {
             JDA jda = JDABuilder
-                    .createDefault(token)
+                    .createDefault(token.trim())
                     .addEventListeners(new BotListener())
                     .build();
 
@@ -29,14 +29,23 @@ public class Main {
                             Commands.slash(
                                     "ping",
                                     "Checks whether the bot is online"
-                            )
+                            ),
+                            Commands.slash(
+                                            "race-create",
+                                            "Creates a new endurance race"
+                                    )
+                                    .setDefaultPermissions(
+                                            DefaultMemberPermissions.enabledFor(
+                                                    Permission.MANAGE_SERVER
+                                            )
+                                    )
                     )
                     .queue(
                             success -> System.out.println(
                                     "[INFO] Slash commands registered."
                             ),
                             error -> System.out.println(
-                                    "[ERROR] Could not register commands: "
+                                    "[ERROR] Command registration failed: "
                                             + error.getMessage()
                             )
                     );

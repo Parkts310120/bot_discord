@@ -1,9 +1,0 @@
-br/com/endurancebot/service/TimeZoneCatalogService.class
-br/com/endurancebot/repository/AvailabilityRepository.class
-br/com/endurancebot/Main.class
-br/com/endurancebot/service/TimeZoneService.class
-br/com/endurancebot/BotListener.class
-br/com/endurancebot/model/Race.class
-br/com/endurancebot/service/AvailabilityService.class
-br/com/endurancebot/model/TimeZoneOption.class
-br/com/endurancebot/model/Availability.class
