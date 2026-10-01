@@ -27,6 +27,7 @@ The repository is being evolved as an engineering portfolio project from a real 
 - Java 21
 - Maven
 - JDA 6.4.2
+- JUnit Jupiter
 - Java Time API (`Instant`, `ZoneId`, `ZonedDateTime`)
 
 ## Current architecture
@@ -81,6 +82,32 @@ The Maven configuration points the exec plugin to:
 br.com.endurancebot.Main
 ```
 
+## Verification
+
+The deterministic service/repository layer now has automated tests for:
+
+- conversion from driver-local time to canonical `Instant` values;
+- overnight intervals that cross a local date boundary;
+- invalid IANA time-zone identifiers;
+- race-date selection as seen in the driver's time zone;
+- availability filtering by race;
+- defensive list copies in the in-memory repository/catalog;
+- time-zone catalog lookup and validation.
+
+Run the same Maven verification used by CI:
+
+```bash
+mvn verify
+```
+
+The test suite does not connect to Discord and does not require `DISCORD_TOKEN`.
+
+### CI
+
+`.github/workflows/ci.yml` runs Maven verification on Java 21 for pushes to `main` / portfolio branches and pull requests targeting `main`.
+
+The workflow uses read-only repository permissions and pins the checkout/setup actions to reviewed commit SHAs.
+
 ## Current engineering boundaries
 
 This is intentionally documented as it exists today, not as a finished production system.
@@ -91,24 +118,18 @@ The active race and submitted availability data are currently stored in process 
 
 ### Discord coupling
 
-Part of the workflow/domain logic currently lives inside JDA event handlers. A next step is to extract pure domain services that can be tested without Discord objects.
+Part of the workflow/domain logic currently lives inside JDA event handlers. The present tests cover existing pure services and repositories; JDA interaction handlers still need cleaner domain boundaries before they can be tested without Discord objects.
 
-### Tests
+### Test gaps
 
-The current repository does not yet contain the automated test suite required for portfolio-ready status.
+Still not covered automatically:
 
-Planned coverage includes:
+- race-creation parsing and duration validation inside the JDA handler;
+- empty availability submission behavior;
+- interval overlap policy;
+- Discord permission/integration behavior.
 
-- time-zone conversion across date boundaries;
-- overnight availability intervals;
-- invalid intervals;
-- empty availability submissions;
-- race duration validation;
-- conversion between driver and official race zones.
-
-### CI
-
-A GitHub Actions workflow will be added after the test boundary is in place.
+These are explicit gaps, not features claimed to be verified.
 
 ## Engineering decisions
 
@@ -129,9 +150,9 @@ Key decisions already visible in the code:
 
 - [x] preserve existing commit history;
 - [x] document current architecture and limitations;
-- [ ] add domain/time-zone tests;
-- [ ] isolate testable domain logic from JDA handlers;
-- [ ] add CI;
+- [x] add deterministic domain/time-zone service tests;
+- [ ] isolate remaining deterministic logic from JDA handlers;
+- [x] add Java 21 CI with `mvn verify`;
 - [ ] perform a history-aware secret scan;
 - [ ] add screenshots/example interaction flow.
 
@@ -169,4 +190,4 @@ The goal is not to hide AI assistance. The goal is to keep the technical decisio
 
 **Active recovery / portfolio hardening**
 
-The bot already contains real functionality and authentic iteration history, but it is not being presented as production-ready until tests, CI and the remaining review gates are complete.
+The bot now has deterministic automated tests and Java 21 CI, but it is not being presented as production-ready. JDA/domain separation, broader behavior coverage, a history-aware secret scan and the remaining portfolio review gates are still open.
